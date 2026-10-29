@@ -51,6 +51,9 @@ docker compose up -d db
 until [ "$(docker inspect -f '{{.State.Health.Status}}' "wp-$name-db-1")" = healthy ]; do sleep 2; done
 zcat "$db" | docker compose exec -T -e MYSQL_PWD="$DB_PASSWORD" db mariadb -uwordpress wordpress
 
+# refresh.sh records live's state here, while the database still holds live's own values.
+[ -z "${AFTER_DB_IMPORT:-}" ] || "$AFTER_DB_IMPORT" "$name"
+
 echo "== rewriting addresses to $new"
 for old in "$@"; do
 	"$ROOT/bin/wp.sh" "$name" search-replace "${old%/}" "$new" --all-tables-with-prefix --precise --skip-columns=guid --report-changed-only
