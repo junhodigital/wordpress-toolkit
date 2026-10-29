@@ -7,6 +7,13 @@ through a Cloudflare Tunnel; nothing here is ever the live site.
 
 **`WORKFLOW.md` is the step-by-step for every client. `CLAUDE.md` holds the rules.**
 
+> ⚠️ **Status 2026-10-29: `live-backup.sh`, `refresh.sh` and `publish.py` are written but have
+> never run against a live site.** Only the test-copy half of publish (`export.php`) is tested.
+> First run for vistaclinic, in order: add `secrets/ssh/vistaclinic.pub` on Hostinger →
+> `bin/live-setup.sh vistaclinic --test` → `bin/refresh.sh vistaclinic --yes` → publish
+> dry runs (right after a refresh, a page must show no changes) → one draft page and one test
+> file published and rolled back. Remove this note once that has passed.
+
 ## Layout
 
 | Path | What | In git |
