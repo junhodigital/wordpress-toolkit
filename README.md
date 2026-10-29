@@ -9,8 +9,8 @@ through a Cloudflare Tunnel; nothing here is ever the live site.
 
 > ⚠️ **Status 2026-10-29: `live-backup.sh`, `refresh.sh` and `publish.py` are written but have
 > never run against a live site.** Only the test-copy half of publish (`export.php`) is tested.
-> First run for vistaclinic, in order: add `secrets/ssh/vistaclinic.pub` on Hostinger →
-> `bin/live-setup.sh vistaclinic --test` → `bin/refresh.sh vistaclinic --yes` → publish
+> First run for vistaclinic, in order, all from the PC: `pc/pi.sh bin/live-setup.sh vistaclinic --test`
+> → `pc/pi.sh bin/refresh.sh vistaclinic --yes` → publish
 > dry runs (right after a refresh, a page must show no changes) → one draft page and one test
 > file published and rolled back. Remove this note once that has passed.
 
@@ -22,7 +22,8 @@ through a Cloudflare Tunnel; nothing here is ever the live site.
 | `bin/` | The scripts below | yes |
 | `sites/<name>/` | One client: `docker-compose.yml`, `.env` (port, PHP version, DB passwords), `html/` (WordPress), `db/` (database files), notes | **no** |
 | `backups/<name>/` | Snapshots from `bin/backup.sh` and copies of live backups. Never published | **no** |
-| `secrets/` | `r2.env`: R2 key, `.eu.` endpoint, bucket. `cloudflare.env`: API token, account, zone, `CF_ADMIN_EMAILS`. `ssh/<site>`: one key per client for its live host, `ssh/known_hosts` pinned host keys. Mode 600 | **no** |
+| `secrets/` | `r2.env`: R2 key, `.eu.` endpoint, bucket. `cloudflare.env`: API token, account, zone, `CF_ADMIN_EMAILS`. `ssh/known_hosts`: pinned live host keys. No live-host keys: the PC lends its own per command (`pc/pi.sh`). Mode 600 | **no** |
+| `pc/pi.sh` | Runs **on the PC**: starts a toolkit command on the Pi and lends it the PC's SSH key for live hosts for that command only | yes |
 | `sites/<name>/live.env` | Where live is (SSH, docroot, addresses), from `bin/live-setup.sh` | **no** |
 | `sites/<name>/manifest/` | Live's state at the last refresh; `publish.py` refuses to overwrite anything changed since | **no** |
 | `sites/<name>/after-import.sh` | That site's test-copy-only changes, re-applied after every refresh | **no** |

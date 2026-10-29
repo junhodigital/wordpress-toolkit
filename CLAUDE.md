@@ -22,7 +22,9 @@ back here. `WORKFLOW.md` is the step-by-step; follow it.
   dashboard-managed routes.
 
 - Live sites: `bin/refresh.sh` (live → copy) and `bin/publish.py` (copy → live, piece by
-  piece). Both reach live with the client's own key, `secrets/ssh/<site>`. Run publish
+  piece). The Pi holds no key to any live host: start them from the PC with
+  `pc/pi.sh <command>`, which lends the PC's key for that command only. Never put a live
+  host key on the Pi or add a Pi key to a live host without the user's say-so. Run publish
   without `--yes` first and show the user the plan; `--yes` only after they approve, and
   `--force` only after looking at the live change it would overwrite.
 

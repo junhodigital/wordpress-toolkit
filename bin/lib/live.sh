@@ -4,8 +4,10 @@
 #   LIVE_SSH=user@host  LIVE_PORT=22  LIVE_DOCROOT=/absolute/path/to/wordpress
 #   LIVE_URLS="https://example.com https://www.example.com ..."   the first is the real address
 #   LIVE_EXCLUDES="wp-content/cache ..."                          never copied (caches)
-# Each client has its own SSH key, secrets/ssh/<site>, and the host key is pinned in
-# secrets/ssh/known_hosts, so a key can be withdrawn from one client without touching another.
+# The Pi holds no key to any live host. The PC lends its key for the length of one command
+# (ssh-agent forwarding, pc/pi.sh), so live is reachable only while someone runs a command
+# from the PC. Host keys are pinned in secrets/ssh/known_hosts.
+# (A per-client key in secrets/ssh/<site> is used instead if one exists, for unattended jobs.)
 
 live_load() {
 	site=$1
@@ -16,8 +18,14 @@ live_load() {
 	# shellcheck disable=SC1091
 	. "$dir/live.env"
 	LIVE_URL=${LIVE_URLS%% *}
-	SSH_OPTS=(-i "$ROOT/secrets/ssh/$site" -p "${LIVE_PORT:-22}" -o IdentitiesOnly=yes -o BatchMode=yes
+	SSH_OPTS=(-p "${LIVE_PORT:-22}" -o BatchMode=yes
 		-o UserKnownHostsFile="$ROOT/secrets/ssh/known_hosts" -o StrictHostKeyChecking=yes)
+	if [ -f "$ROOT/secrets/ssh/$site" ]; then
+		SSH_OPTS+=(-i "$ROOT/secrets/ssh/$site" -o IdentitiesOnly=yes)
+	elif [ -z "${SSH_AUTH_SOCK:-}" ]; then
+		echo "no access to $site's live host from here: run this from the PC with pc/pi.sh" >&2
+		exit 2
+	fi
 }
 
 live_ssh() { ssh "${SSH_OPTS[@]}" "$LIVE_SSH" "$@"; }

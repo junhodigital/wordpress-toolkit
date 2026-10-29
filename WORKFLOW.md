@@ -1,6 +1,9 @@
 # Workflow
 
 The same steps for every client. Commands run on the Pi, in `~/Documents/wordpressServers`.
+The ones that reach a live site (`live-backup`, `refresh`, `publish`, `live-setup --test`)
+are started from the PC with `pc/pi.sh <command>`, which lends the Pi the PC's SSH key for
+that command only. The Pi itself has no access to any live site.
 
 ## A. New client (once)
 
@@ -11,9 +14,11 @@ The same steps for every client. Commands run on the Pi, in `~/Documents/wordpre
    `bin/r2-upload.sh <client> <date>-live <files.tar.gz> <db.sql.gz>`
 3. **Create the test site**: `bin/new-site.sh <client> <port>` (next free port: see README).
    Add `PREFIX=xyz_` in front if the site's tables are not `wp_`.
-4. **Connect it to live**: `bin/live-setup.sh <client> <user@host> <port> <docroot> <live-url>...`
-   prints a key made for this client only. Add it on the host (hPanel / cPanel → SSH keys),
-   then `bin/live-setup.sh <client> --test`.
+4. **Connect it to live**: give the PC SSH access to the client's host (its key added in
+   hPanel / cPanel → SSH keys, a `Host` entry in `~/.ssh/config`, and the key in
+   `PI_LEND_KEYS` for `pc/pi.sh`). Then, on the Pi,
+   `bin/live-setup.sh <client> <user@host> <port> <docroot> <live-url>...`, and from the PC
+   `pc/pi.sh bin/live-setup.sh <client> --test`.
 5. **Test-copy-only changes**: tracking off (each plugin has its own switch; put it in
    `sites/<client>/wp-config-extra.php`), and anything else the copy must not do in
    `sites/<client>/after-import.sh` (plugins to switch off, host-specific files to remove).

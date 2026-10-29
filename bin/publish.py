@@ -88,9 +88,14 @@ class Site:
         self.live_url = live["LIVE_URLS"].split()[0].rstrip("/")
         self.target = live["LIVE_SSH"]
         keys = os.path.join(ROOT, "secrets", "ssh")
-        self.ssh_opts = ["-i", os.path.join(keys, name), "-p", live.get("LIVE_PORT", "22"),
-                         "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes",
+        self.ssh_opts = ["-p", live.get("LIVE_PORT", "22"), "-o", "BatchMode=yes",
                          "-o", f"UserKnownHostsFile={keys}/known_hosts", "-o", "StrictHostKeyChecking=yes"]
+        # Same rule as bin/lib/live.sh: the PC's key, lent through pc/pi.sh, unless this
+        # client has its own key on the Pi.
+        if os.path.exists(os.path.join(keys, name)):
+            self.ssh_opts += ["-i", os.path.join(keys, name), "-o", "IdentitiesOnly=yes"]
+        elif not os.environ.get("SSH_AUTH_SOCK"):
+            die(f"no access to {name}'s live host from here: run this from the PC with pc/pi.sh")
         self.backups = os.path.join(ROOT, "backups", name)
         self.manifest = os.path.join(self.dir, "manifest")
         if not os.path.exists(os.path.join(self.manifest, "posts.tsv")):

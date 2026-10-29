@@ -7,12 +7,12 @@
 #       /home/u305482107/domains/vistaclinic.ie/public_html \
 #       https://vistaclinic.ie https://www.vistaclinic.ie http://vistaclinic.ie http://www.vistaclinic.ie
 #
-#   bin/live-setup.sh <site> --test      check the connection again
+#   pc/pi.sh bin/live-setup.sh <site> --test      check the connection (from the PC)
 #
-# Writes sites/<site>/live.env, makes an SSH key for this client only (secrets/ssh/<site>),
-# pins the host's key (first use), and prints the public key to add on the live host
-# (hPanel / cPanel "SSH keys", or ~/.ssh/authorized_keys). Then run it with --test.
-# Every URL listed is rewritten to the test address on refresh, and back on publish.
+# Writes sites/<site>/live.env and pins the host's key (first use; compare it with the PC's
+# known_hosts). The Pi gets no key: the PC lends its own for each command through pc/pi.sh,
+# so the PC needs SSH access to the host first. Every URL listed is rewritten to the test
+# address on refresh, and back on publish.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 # shellcheck source=lib/live.sh
@@ -20,7 +20,6 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 usage="usage: live-setup.sh <site> <user@host> <port> <docroot> <live-url> [urls...]  |  <site> --test"
 site=${1:?$usage}
 [ -f "$ROOT/sites/$site/.env" ] || { echo "no site $site" >&2; exit 2; }
-key=$ROOT/secrets/ssh/$site
 
 if [ "${2:-}" != --test ]; then
 	[ $# -ge 5 ] || { echo "$usage" >&2; exit 2; }
@@ -36,14 +35,13 @@ LIVE_EXCLUDES="wp-content/cache wp-content/litespeed wp-content/upgrade wp-conte
 EOF
 	mkdir -p "$ROOT/secrets/ssh"
 	chmod 700 "$ROOT/secrets/ssh"
-	[ -f "$key" ] || ssh-keygen -q -t ed25519 -N "" -C "wordpress-toolkit $site $(hostname)" -f "$key"
 	host=${target#*@}
 	if ! ssh-keygen -F "[$host]:$port" -f "$ROOT/secrets/ssh/known_hosts" >/dev/null 2>&1; then
 		ssh-keyscan -p "$port" "$host" 2>/dev/null >>"$ROOT/secrets/ssh/known_hosts"
 	fi
-	echo "Add this public key on the live host, then run: bin/live-setup.sh $site --test"
-	echo
-	cat "$key.pub"
+	echo "host key pinned:"
+	ssh-keygen -lF "[$host]:$port" -f "$ROOT/secrets/ssh/known_hosts" | grep -v '^#'
+	echo "next, from the PC: pc/pi.sh bin/live-setup.sh $site --test"
 	exit 0
 fi
 
