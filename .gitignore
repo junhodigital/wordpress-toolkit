@@ -6,3 +6,4 @@ secrets/
 edge/.env
 edge/*.json
 edge/config.yml
+__pycache__/
