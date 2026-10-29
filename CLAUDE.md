@@ -21,6 +21,11 @@ back here. `WORKFLOW.md` is the step-by-step; follow it.
   another project, never put the tunnel on the host network, and never switch the tunnel to
   dashboard-managed routes.
 
+- Live sites: `bin/refresh.sh` (live → copy) and `bin/publish.py` (copy → live, piece by
+  piece). Both reach live with the client's own key, `secrets/ssh/<site>`. Run publish
+  without `--yes` first and show the user the plan; `--yes` only after they approve, and
+  `--force` only after looking at the live change it would overwrite.
+
 ## Rules
 
 - ⛔ Never test on a live site, and never copy a whole test database over live. Publish

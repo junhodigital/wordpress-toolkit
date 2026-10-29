@@ -15,7 +15,11 @@ through a Cloudflare Tunnel; nothing here is ever the live site.
 | `bin/` | The scripts below | yes |
 | `sites/<name>/` | One client: `docker-compose.yml`, `.env` (port, PHP version, DB passwords), `html/` (WordPress), `db/` (database files), notes | **no** |
 | `backups/<name>/` | Snapshots from `bin/backup.sh` and copies of live backups. Never published | **no** |
-| `secrets/` | `r2.env`: R2 key, `.eu.` endpoint, bucket. `cloudflare.env`: API token, account, zone, `CF_ADMIN_EMAILS`. Mode 600 | **no** |
+| `secrets/` | `r2.env`: R2 key, `.eu.` endpoint, bucket. `cloudflare.env`: API token, account, zone, `CF_ADMIN_EMAILS`. `ssh/<site>`: one key per client for its live host, `ssh/known_hosts` pinned host keys. Mode 600 | **no** |
+| `sites/<name>/live.env` | Where live is (SSH, docroot, addresses), from `bin/live-setup.sh` | **no** |
+| `sites/<name>/manifest/` | Live's state at the last refresh; `publish.py` refuses to overwrite anything changed since | **no** |
+| `sites/<name>/after-import.sh` | That site's test-copy-only changes, re-applied after every refresh | **no** |
+| `bin/php/` | Run by `publish.py`: `export.php` on the copy, `apply.php` on live | yes |
 | `edge/` | The Cloudflare Tunnel container. `tunnel.json` (its key) and `config.yml` (its routes) are written by `bin/edge.py` | compose file only |
 
 ## Client links
@@ -54,6 +58,13 @@ bin/wp.sh <site> plugin list              # any WP-CLI command
 bin/set-url.sh <site> https://new.address # e.g. when the tunnel hostname is added
 bin/backup.sh <site>                      # snapshot before a bigger change
 bin/r2-upload.sh <site> <label> <file>... # copy backups to R2, download back and compare
+bin/live-setup.sh <site> <user@host> <port> <docroot> <url>...  # connect a site to its live host
+bin/live-backup.sh <site> [--db-only] [--r2]  # verified backup of LIVE onto the Pi (and R2)
+bin/refresh.sh <site> [--yes]             # replace the test copy with live (backs up both first)
+bin/publish.py <site> post <id>... [--yes]       # pages/posts/images -> live, dry run without --yes
+bin/publish.py <site> files <path>... [--yes]    # theme/plugin/upload files -> live
+bin/publish.py <site> option <name>... [--yes]   # single settings -> live
+bin/publish.py <site> rollback <dir> [--yes]     # undo one publish
 bin/edge.py setup                         # once per Pi: create the tunnel, start edge/
 bin/edge.py link <site> <email>...        # https://<site>.junhodigital.com behind a login
 bin/edge.py access <site> list            # who can log in; also: add|remove <email>...
