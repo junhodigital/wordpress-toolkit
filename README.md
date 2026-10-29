@@ -21,7 +21,9 @@ through a Cloudflare Tunnel; nothing here is ever the live site.
 ## Client links
 
 Each linked site gets `https://<site>.junhodigital.com`, behind a Cloudflare Access login (a
-one-time code sent to an allowed email). Every client has their own list; the emails in
+one-time code sent to an allowed email; the login then lasts 7 days, `SESSION` in
+`bin/edge.py`). Re-run `bin/edge.py link <site>` to apply a changed setting to an existing
+link; it keeps the emails already allowed. Every client has their own list; the emails in
 `CF_ADMIN_EMAILS` are on all of them.
 
 Only WordPress is public. The tunnel container is on the `wp-edge` network alone, so it cannot

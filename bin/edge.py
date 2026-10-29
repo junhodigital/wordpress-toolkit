@@ -29,6 +29,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EDGE = os.path.join(ROOT, "edge")
 TUNNEL_JSON = os.path.join(EDGE, "tunnel.json")
 API = "https://api.cloudflare.com/client/v4"
+# How long a client stays logged in before Access asks for a new email code.
+SESSION = "168h"
 
 
 def die(msg, code=2):
@@ -208,13 +210,15 @@ def cmd_link(site, emails):
         die(f"{host} already exists in DNS for something else; not touching it")
 
     admins = [e for e in CF.get("CF_ADMIN_EMAILS", "").split(",") if e.strip()]
-    policy = save_policy(site, admins + emails)
+    # Re-running link (e.g. to apply a new SESSION) keeps everyone already allowed.
+    old = find_policy(site)
+    policy = save_policy(site, admins + (emails_of(old) if old else []) + emails)
     app = find_app(host)
     body = {
         "name": f"wp-{site}",
         "domain": host,
         "type": "self_hosted",
-        "session_duration": "24h",
+        "session_duration": SESSION,
         "app_launcher_visible": False,
         "policies": [{"id": policy["id"], "precedence": 1}],
     }
