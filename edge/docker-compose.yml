@@ -1,0 +1,29 @@
+# The Cloudflare Tunnel: the only way in from the internet, and only to WordPress.
+#
+# It sits on the wp-edge network and nothing else, so it can reach the WordPress
+# containers and not the databases, the Pi's own services or other projects. What it
+# forwards is decided by config.yml in this folder (written by bin/edge.py from the sites
+# that have a link); anything not listed gets a 404. The tunnel is "locally managed":
+# the routes cannot be changed from the Cloudflare dashboard, only from this Pi.
+#
+# Started by `bin/edge.py setup`; restarted by bin/edge.py when a route changes.
+name: wp-edge
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:2024.12.2
+    command: tunnel --no-autoupdate --config /etc/cloudflared/config.yml run
+    volumes:
+      - ./:/etc/cloudflared:ro
+    # The Pi user, so it can read tunnel.json (mode 600) without making it world-readable.
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [edge]
+    restart: unless-stopped
+
+networks:
+  edge:
+    external: true
+    name: wp-edge

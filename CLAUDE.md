@@ -15,6 +15,12 @@ back here. `WORKFLOW.md` is the step-by-step; follow it.
 - Backups go to Cloudflare R2, bucket in `secrets/r2.env`, EU jurisdiction, so the endpoint
   must contain `.eu.`; without it R2 answers AccessDenied. One folder per client.
 
+- Client links: `bin/edge.py`, zone `junhodigital.com` (in the user's own Cloudflare
+  account). The token can edit DNS for that zone only, plus tunnels and Access.
+  ⛔ Only WordPress containers are ever public: never add a route to the Pi, a database or
+  another project, never put the tunnel on the host network, and never switch the tunnel to
+  dashboard-managed routes.
+
 ## Rules
 
 - ⛔ Never test on a live site, and never copy a whole test database over live. Publish

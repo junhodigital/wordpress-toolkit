@@ -5,3 +5,4 @@ backups/
 secrets/
 edge/.env
 edge/*.json
+edge/config.yml

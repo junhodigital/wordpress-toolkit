@@ -15,8 +15,20 @@ through a Cloudflare Tunnel; nothing here is ever the live site.
 | `bin/` | The scripts below | yes |
 | `sites/<name>/` | One client: `docker-compose.yml`, `.env` (port, PHP version, DB passwords), `html/` (WordPress), `db/` (database files), notes | **no** |
 | `backups/<name>/` | Snapshots from `bin/backup.sh` and copies of live backups. Never published | **no** |
-| `secrets/` | `r2.env`: R2 key, `.eu.` endpoint, bucket. Mode 600 | **no** |
-| `edge/` | The Cloudflare Tunnel (one tunnel, one hostname per site). Not set up yet | yes, minus keys |
+| `secrets/` | `r2.env`: R2 key, `.eu.` endpoint, bucket. `cloudflare.env`: API token, account, zone, `CF_ADMIN_EMAILS`. Mode 600 | **no** |
+| `edge/` | The Cloudflare Tunnel container. `tunnel.json` (its key) and `config.yml` (its routes) are written by `bin/edge.py` | compose file only |
+
+## Client links
+
+Each linked site gets `https://<site>.junhodigital.com`, behind a Cloudflare Access login (a
+one-time code sent to an allowed email). Every client has their own list; the emails in
+`CF_ADMIN_EMAILS` are on all of them.
+
+Only WordPress is public. The tunnel container is on the `wp-edge` network alone, so it cannot
+reach databases, the Pi itself or other projects, and its routes are a file on the Pi
+(`edge/config.yml`): the Cloudflare dashboard and the API token cannot add a route. Anything
+not listed answers 404. `bin/edge.py` creates the login before the name and the route, and
+removes them in the opposite order, so a site is never reachable without a login.
 
 ## Updating the Pi
 
@@ -40,6 +52,10 @@ bin/wp.sh <site> plugin list              # any WP-CLI command
 bin/set-url.sh <site> https://new.address # e.g. when the tunnel hostname is added
 bin/backup.sh <site>                      # snapshot before a bigger change
 bin/r2-upload.sh <site> <label> <file>... # copy backups to R2, download back and compare
+bin/edge.py setup                         # once per Pi: create the tunnel, start edge/
+bin/edge.py link <site> <email>...        # https://<site>.junhodigital.com behind a login
+bin/edge.py access <site> list            # who can log in; also: add|remove <email>...
+bin/edge.py unlink <site>                 # take the link down (site keeps running at home)
 cd sites/<site> && docker compose stop    # pause a client's site; "up -d" to resume
 ```
 

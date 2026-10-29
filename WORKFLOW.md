@@ -17,7 +17,9 @@ that step is done by hand.
    plugin has its own switch; put it in `sites/<client>/wp-config-extra.php`).
 5. **Client repo**: create a private repo for the client and fill in its `CLAUDE.md`: phone,
    address, hours, tracking IDs, content rules, where the live site is hosted.
-6. **Client link**: add the test site to the Cloudflare Tunnel behind a login *(to build)*.
+6. **Client link**: `bin/edge.py link <client> <client's email>...` gives them
+   `https://<client>.junhodigital.com` behind a login. Change who can log in with
+   `bin/edge.py access`; `bin/edge.py unlink` when the work is finished.
 
 ## B. Every change
 
