@@ -1,0 +1,7 @@
+# Client data and secrets never go into git. Notes about one client belong in that
+# client's own repo, so the whole of sites/ stays out.
+sites/
+backups/
+secrets/
+edge/.env
+edge/*.json

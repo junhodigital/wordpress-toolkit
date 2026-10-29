@@ -1,0 +1,54 @@
+# One test site. bin/new-site.sh copies this into sites/<name>/; per-site values live in .env.
+# Each site gets its own database container on its own private network, so no two clients
+# can ever see each other's data.
+name: wp-${SITE}
+
+services:
+  db:
+    image: mariadb:11.8
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - ./db:/var/lib/mysql
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 30
+
+  wordpress:
+    image: wordpress:${PHP_TAG}-apache
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    ports:
+      - "${HTTP_PORT}:80"          # home network only; the internet comes in through edge/
+    volumes:
+      - ./html:/var/www/html
+      - ../../template/php.ini:/usr/local/etc/php/conf.d/zz-test-server.ini:ro
+    networks: [internal, edge]
+    security_opt: ["no-new-privileges:true"]
+
+  # WordPress command line: bin/wp.sh <site> <command>. Not started with the site.
+  cli:
+    image: wordpress:cli-${PHP_TAG}
+    profiles: [cli]
+    user: "33:33"                  # same uid as Apache's www-data; the cli image defaults to 82
+    depends_on:
+      db: { condition: service_healthy }
+    volumes:
+      - ./html:/var/www/html
+      - ../../template/php.ini:/usr/local/etc/php/conf.d/zz-test-server.ini:ro
+    environment:
+      HOME: /tmp
+    networks: [internal]
+
+networks:
+  internal: {}
+  edge:
+    external: true
+    name: wp-edge
