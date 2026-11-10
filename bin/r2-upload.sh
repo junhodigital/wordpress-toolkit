@@ -8,6 +8,8 @@
 # Every file is downloaded again and its MD5 compared with the local one, so "uploaded"
 # means the bytes in R2 are the bytes on this disk. A label that already has files in R2
 # is refused: a backup is never overwritten. Key, endpoint and bucket: secrets/r2.env.
+# After a verified upload, bin/r2-prune.sh keeps this backup and the one before it in
+# <site>/ and deletes any older ones.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 [ $# -ge 3 ] || { echo "usage: r2-upload.sh <site> <label> <file>..." >&2; exit 2; }
@@ -61,3 +63,6 @@ r2 "$tmp" copyto /data/SHA256SUMS "$dest/SHA256SUMS"
 
 echo "== in R2 now: $R2_BUCKET/$site/$label/"
 r2 "$tmp" lsl "$dest"
+
+# Only now that the new backup is verified: keep it and the one before, delete the older ones.
+"$ROOT/bin/r2-prune.sh" "$site" --keep 2 --protect "$label" --yes

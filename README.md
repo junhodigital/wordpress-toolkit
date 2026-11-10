@@ -65,7 +65,8 @@ bin/import.sh <site> files.tar.gz db.sql.gz <docroot-in-tar> <new-url> <old-url>
 bin/wp.sh <site> plugin list              # any WP-CLI command
 bin/set-url.sh <site> https://new.address # e.g. when the tunnel hostname is added
 bin/backup.sh <site>                      # snapshot before a bigger change
-bin/r2-upload.sh <site> <label> <file>... # copy backups to R2, download back and compare
+bin/r2-upload.sh <site> <label> <file>... # copy backups to R2, download back and compare, then prune
+bin/r2-prune.sh <site> [--yes]            # keep the 2 newest backups in R2, delete older (plan without --yes)
 bin/live-setup.sh <site> <user@host> <port> <docroot> <url>...  # connect a site to its live host
 bin/live-backup.sh <site> [--db-only] [--r2]  # verified backup of LIVE onto the Pi (and R2)
 bin/refresh.sh <site> [--yes]             # replace the test copy with live (backs up both first)

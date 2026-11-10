@@ -14,6 +14,10 @@ back here. `WORKFLOW.md` is the step-by-step; follow it.
   Pi (remote `pi`). The Pi's own GitHub key is a different account; do not push from the Pi.
 - Backups go to Cloudflare R2, bucket in `secrets/r2.env`, EU jurisdiction, so the endpoint
   must contain `.eu.`; without it R2 answers AccessDenied. One folder per client.
+  R2 keeps **two backups per client**, the previous one and the current one: after every
+  verified upload `bin/r2-upload.sh` runs `bin/r2-prune.sh`, which deletes older ones. It
+  never prunes before the new upload is verified, so a failed backup leaves the old two.
+  The Pi's own `backups/` folder is not pruned.
 
 - Client links: `bin/edge.py`, zone `junhodigital.com` (in the user's own Cloudflare
   account). The token can edit DNS for that zone only, plus tunnels and Access.

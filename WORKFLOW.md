@@ -60,7 +60,8 @@ pages or files on live, and plugin activation (do it in wp-admin).
 
 ## C. Regular
 
-- **Weekly**: back up every live site to R2: `bin/live-backup.sh <client> --r2`.
+- **Weekly**: back up every live site to R2: `bin/live-backup.sh <client> --r2`. R2 keeps
+  the newest two per client; each verified upload deletes the older ones (`bin/r2-prune.sh`).
 - **Monthly**: report per client (traffic, ads, search); plugin and WordPress updates, tried on
   the test site first.
 - Pause test sites nobody is reviewing: `cd sites/<client> && docker compose stop`.
